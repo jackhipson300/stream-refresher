@@ -1,34 +1,33 @@
 chrome.action.onClicked.addListener(async (tab) => {
-  let { enabled } = await chrome.storage.session.get("enabled")
-  if(!enabled) {
-    enabled = false
+  let { tabId } = await chrome.storage.session.get("tabId")
+  if(tabId === tab.id) {
+    chrome.storage.session.set({ tabId: undefined })
+    return
   }
 
-  chrome.storage.session.set({ enabled: !enabled })
+  console.log("setting active tab to:", tab.id)
+  chrome.storage.session.set({ tabId: tab.id })
 
-  if(!enabled) {
-    chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ['refresher.js']
-    })
-  }
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    files: ['refresher.js']
+  })
 })
 
-chrome.runtime.onMessage.addListener((message) => {
+chrome.runtime.onMessage.addListener(async (message) => {
   if (message.action === 'refresh') {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs.length > 0) {
-        const tabId = tabs[0].id;
-        
-        chrome.tabs.reload(tabId, {}) 
-      }
-    });
+    console.log("refresh received")
+    const { tabId } = await chrome.storage.session.get("tabId")
+    if(tabId) {
+      console.log("refreshing tab:", tabId)
+      chrome.tabs.reload(tabId, {}) 
+    }
   }
 })
 
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
-  const { enabled } = await chrome.storage.session.get("enabled")
-  if (enabled && changeInfo.status === 'complete') {
+chrome.tabs.onUpdated.addListener(async (_, changeInfo) => {
+  const { tabId } = await chrome.storage.session.get("tabId")
+  if (tabId && changeInfo.status === 'complete') {
     chrome.scripting.executeScript({
       target: { tabId: tabId },
       files: ['refresher.js']

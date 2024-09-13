@@ -1,10 +1,9 @@
-async function run() {
+if(!window.scriptInjected) {
   let ignoreFlag = true;
   let timeout = undefined;
 
-  const video = document.querySelector('video')
-
   const handleRefresh = () => {
+    console.log('buffering')
     if(ignoreFlag) {
       ignoreFlag = false;
       return;
@@ -12,19 +11,22 @@ async function run() {
 
     if(!timeout) {
       timeout = setTimeout(() => {
+        console.log('requesting refresh')
         chrome.runtime.sendMessage({ action: 'refresh' })
       }, 2000)
     }
   }
 
   const cancelRefresh = () => {
+    console.log('cancel')
     clearTimeout(timeout)
   }
 
+  const video = document.querySelector('video')
   if(!video) {
-    console.log("Video not found")
+    console.log("video not found")
   } else {
-    console.log("Starting")
+    console.log("starting")
     video.click()
 
     // const events = [
@@ -39,5 +41,3 @@ async function run() {
     video.addEventListener('playing', cancelRefresh)
   }
 }
-
-run()
