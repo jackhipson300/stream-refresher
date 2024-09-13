@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Stream Refresher",
+  "description": "Refresh streams when they buffer",
+  "version": "1.0",
+  "permissions": ["activeTab", "scripting", "tabs", "storage"],
+  "action": {
+    "default_title": "Test"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
